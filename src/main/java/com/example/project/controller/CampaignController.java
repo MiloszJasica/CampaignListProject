@@ -1,77 +1,62 @@
 package com.example.project.controller;
 
-import com.example.project.model.Campaign;
+import com.example.project.model.CampaignDto;
 import com.example.project.model.Product;
-import com.example.project.repository.CampaignRepository;
-import com.example.project.repository.ProductRepository;
+import com.example.project.service.CampaignService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/campaigns")
 public class CampaignController {
 
+    private final CampaignService campaignService;
+
     @Autowired
-    private CampaignRepository CampaignRepository;
-    @Autowired
-    private CampaignRepository campaignRepository;
-    @Autowired
-    private ProductRepository productRepository;
+    public CampaignController(CampaignService campaignService) {
+        this.campaignService = campaignService;
+    }
 
     @GetMapping
-    public List<Campaign> getAllCampaigns() {
-        return CampaignRepository.findAll();
+    public List<CampaignDto> getAllCampaigns() {
+        return campaignService.getAllCampaigns();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Campaign> getCampaignById(@PathVariable Long id) {
-        Optional<Campaign> campaign = CampaignRepository.findById(id);
-        return campaign.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<CampaignDto> getCampaignById(@PathVariable Long id) {
+        return campaignService.getCampaignById(id)
+                .map(ResponseEntity::ok)
+                .orElseGet(()->ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public Campaign createCampaign(@RequestBody Campaign campaign) {
-        return CampaignRepository.save(campaign);
+    public Long createCampaign(@RequestBody CampaignDto campaign) {
+        return campaignService.createCampaign(campaign);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Campaign> updateCampaign(@PathVariable Long id, @RequestBody Campaign updatedCampaign) {
-        return CampaignRepository.findById(id)
-                .map(campaign -> {
-                    campaign.setName(updatedCampaign.getName());
-                    campaign.setKeywords(updatedCampaign.getKeywords());
-                    campaign.setBidAmount(updatedCampaign.getBidAmount());
-                    campaign.setCampaignFund(updatedCampaign.getCampaignFund());
-                    campaign.setStatus(updatedCampaign.isStatus());
-                    campaign.setTown(updatedCampaign.getTown());
-                    campaign.setRadius(updatedCampaign.getRadius());
-                    campaign.setProducts(updatedCampaign.getProducts());
-                    return ResponseEntity.ok(campaignRepository.save(campaign));
-                })
+    public ResponseEntity<CampaignDto> updateCampaign(@PathVariable Long id, @RequestBody CampaignDto updatedCampaign) {
+        return campaignService.updateCampaign(id,updatedCampaign)
+                .map(ResponseEntity::ok)
                 .orElseGet(() ->  ResponseEntity.notFound().build());
     }
 
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> deleteCampaign(@PathVariable Long id) {
-        return CampaignRepository.findById(id).map(campaign -> {
-            CampaignRepository.delete(campaign);
-            return ResponseEntity.noContent().build();
-        }).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<?> deleteCampaign(@PathVariable Long id) {
+        return campaignService.deleteCampaign(id)
+                ? ResponseEntity.ok().build()
+                : ResponseEntity.notFound().build();
     }
 
     @PostMapping("/{campaignId}/products")
-    public ResponseEntity<Campaign> addProductToCampaign(@PathVariable Long campaignId, @RequestBody Product product) {
-        return campaignRepository.findById(campaignId).map(campaign -> {
-            productRepository.save(product);
-            campaign.getProducts().add(product);
-            campaignRepository.save(campaign);
-            return ResponseEntity.ok(campaign);
-        }).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<CampaignDto> addProductToCampaign(@PathVariable Long campaignId, @RequestBody Product product) {
+        return campaignService.addProductToCampaign(campaignId, product)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
     }
 
 }

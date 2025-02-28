@@ -1,53 +1,20 @@
 package com.example.project.model;
 
-import jakarta.persistence.*;
+public record ProductDto(Long id,
+                         String name,
+                         int quantity,
+                         double price) {
 
-@Entity
-public class Product {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(nullable = false)
-    private String name;
-
-    @Column(nullable = false)
-    private int quantity;
-
-    @Column(nullable = false)
-    private double price;
-
-
-    public Long getId() {
-        return id;
+    public static ProductDto toDto(Product product) {
+        return new ProductDto(product.getId(), product.getName(), product.getQuantity(), product.getPrice());
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public int getQuantity() {
-        return quantity;
-    }
-
-    public void setQuantity(int quantity) {
-        this.quantity = quantity;
-    }
-
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
+    public static Product toEntity(ProductDto productDto) {
+        Product product = new Product();
+        product.setId(productDto.id());
+        product.setName(productDto.name());
+        product.setQuantity(productDto.quantity());
+        product.setPrice(productDto.price());
+        return product;
     }
 }

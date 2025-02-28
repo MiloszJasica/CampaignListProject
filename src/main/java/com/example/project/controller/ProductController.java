@@ -1,35 +1,37 @@
 package com.example.project.controller;
 
-import com.example.project.model.Product;
-import com.example.project.repository.ProductRepository;
+import com.example.project.model.ProductDto;
+import com.example.project.service.ProductService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/products")
 public class ProductController {
 
+    private final ProductService productService;
+
     @Autowired
-    private ProductRepository productRepository;
+    public ProductController(ProductService productService) {
+        this.productService = productService;
+    }
 
     @GetMapping
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public List<ProductDto> getAllProducts() {
+        return productService.getAllProducts();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Product> getProductById(@PathVariable Long id) {
-        Optional<Product> product = productRepository.findById(id);
-        return product.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    public ResponseEntity<ProductDto> getProductById(@PathVariable Long id) {
+        return productService.getProductById(id).map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
     }
 
     @PostMapping
-    public Product createProduct(@RequestBody Product product) {
-        return productRepository.save(product);
+    public Long createProduct(@RequestBody ProductDto product) {
+        return productService.createProduct(product);
     }
 
 }
